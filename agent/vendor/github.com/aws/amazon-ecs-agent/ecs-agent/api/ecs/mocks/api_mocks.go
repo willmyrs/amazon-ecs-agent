@@ -392,17 +392,22 @@ func (mr *MockECSClientMockRecorder) SubmitContainerStateChange(arg0 interface{}
 }
 
 // SubmitTaskStateChange mocks base method.
-func (m *MockECSClient) SubmitTaskStateChange(arg0 ecs.TaskStateChange) error {
+func (m *MockECSClient) SubmitTaskStateChange(arg0 ecs.TaskStateChange, arg1 ...ecs.SubmitTaskStateChangeOption) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SubmitTaskStateChange", arg0)
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SubmitTaskStateChange", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SubmitTaskStateChange indicates an expected call of SubmitTaskStateChange.
-func (mr *MockECSClientMockRecorder) SubmitTaskStateChange(arg0 interface{}) *gomock.Call {
+func (mr *MockECSClientMockRecorder) SubmitTaskStateChange(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubmitTaskStateChange", reflect.TypeOf((*MockECSClient)(nil).SubmitTaskStateChange), arg0)
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubmitTaskStateChange", reflect.TypeOf((*MockECSClient)(nil).SubmitTaskStateChange), varargs...)
 }
 
 // UpdateContainerInstancesState mocks base method.

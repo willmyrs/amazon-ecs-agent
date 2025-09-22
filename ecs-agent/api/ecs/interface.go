@@ -20,6 +20,21 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
 )
 
+// SubmitTaskStateChangeOption is a functional option for SubmitTaskStateChange
+type SubmitTaskStateChangeOption func(*SubmitTaskStateChangeOptions)
+
+// SubmitTaskStateChangeOptions contains options for SubmitTaskStateChange
+type SubmitTaskStateChangeOptions struct {
+	BackendStatus *string
+}
+
+// WithBackendStatus sets a custom backend status to use instead of change.Status.BackendStatus()
+func WithBackendStatus(status string) SubmitTaskStateChangeOption {
+	return func(opts *SubmitTaskStateChangeOptions) {
+		opts.BackendStatus = &status
+	}
+}
+
 // ECSClient is an interface over the ECSSDK interface which abstracts away some
 // details around constructing the request and reading the response down to the
 // parts the agent cares about.
@@ -36,7 +51,7 @@ type ECSClient interface {
 		outpostARN string) (string, string, error)
 	// SubmitTaskStateChange sends a state change and returns an error
 	// indicating if it was submitted
-	SubmitTaskStateChange(change TaskStateChange) error
+	SubmitTaskStateChange(change TaskStateChange, opts ...SubmitTaskStateChangeOption) error
 	// SubmitContainerStateChange sends a state change and returns an error
 	// indicating if it was submitted
 	SubmitContainerStateChange(change ContainerStateChange) error

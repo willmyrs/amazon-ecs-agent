@@ -611,10 +611,16 @@ func (client *ecsClient) getCustomAttributes() []types.Attribute {
 	return attributes
 }
 
-func (client *ecsClient) SubmitTaskStateChange(change ecs.TaskStateChange) error {
+func (client *ecsClient) SubmitTaskStateChange(change ecs.TaskStateChange, opts ...ecs.SubmitTaskStateChangeOption) error {
+	// Process options
+	options := &ecs.SubmitTaskStateChangeOptions{}
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	if change.Attachment != nil && client.stscAttachmentCustomRetryBackoff != nil {
 		retryFunc := func() error {
-			err := client.submitTaskStateChange(change)
+			err := client.submitTaskStateChange(change, options)
 			if err == nil {
 				return nil
 			}
@@ -622,10 +628,10 @@ func (client *ecsClient) SubmitTaskStateChange(change ecs.TaskStateChange) error
 		}
 		return client.stscAttachmentCustomRetryBackoff(retryFunc)
 	}
-	return client.submitTaskStateChange(change)
+	return client.submitTaskStateChange(change, options)
 }
 
-func (client *ecsClient) submitTaskStateChange(change ecs.TaskStateChange) error {
+func (client *ecsClient) submitTaskStateChange(change ecs.TaskStateChange, options *ecs.SubmitTaskStateChangeOptions) error {
 
 	clusterARN := client.configAccessor.Cluster()
 	if len(change.ClusterARN) != 0 {
@@ -661,10 +667,16 @@ func (client *ecsClient) submitTaskStateChange(change ecs.TaskStateChange) error
 		return nil
 	}
 
+	// Determine which status to use - override or default
+	status := change.Status.BackendStatus()
+	if options.BackendStatus != nil {
+		status = *options.BackendStatus
+	}
+
 	req := ecsservice.SubmitTaskStateChangeInput{
 		Cluster:            aws.String(clusterARN),
 		Task:               aws.String(change.TaskARN),
-		Status:             aws.String(change.Status.BackendStatus()),
+		Status:             aws.String(status),
 		Reason:             aws.String(trimString(change.Reason, ecsMaxTaskReasonLength)),
 		PullStartedAt:      change.PullStartedAt,
 		PullStoppedAt:      change.PullStoppedAt,
